@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Футбол"/>
+<title>Футбольный трекер</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(135deg,#0a0f1e,#0d1b2a,#0a1628);
+  font-family:-apple-system,sans-serif;color:#e2e8f0;padding-bottom:100px}
+button,input{-webkit-appearance:none;appearance:none;font-family:inherit}
+/* HEADER */
+.hdr{background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:14px 14px 0;position:sticky;top:0;z-index:50;backdrop-filter:blur(10px)}
+.hdr-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.hdr-title{font-size:17px;font-weight:700;color:#fff}
+.hdr-sub{font-size:11px;color:#64748b;margin-top:1px}
+.tabs{display:flex}
+.tab{flex:1;padding:9px 4px;border:none;background:transparent;color:#64748b;
+  border-bottom:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500}
+.tab.on{color:#22c55e;border-bottom-color:#22c55e;font-weight:700;background:rgba(34,197,94,0.08)}
+/* MAIN */
+.main{padding:16px 14px 0;max-width:600px;margin:0 auto}
+/* CARD */
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);
+  border-radius:14px;padding:16px;margin-bottom:12px}
+.lbl{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+/* INPUT */
+.inp{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:11px 12px;color:#fff;font-size:15px;outline:none;display:block}
+.inp::placeholder{color:#475569}
+.inp:focus{border-color:#22c55e}
+.inp.err{border-color:#ef4444;background:rgba(239,68,68,0.1)}
+.inp-lbl{font-size:11px;color:#64748b;margin-bottom:4px}
+input[type=date]{color-scheme:dark}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* SCORE */
+.sg{display:grid;grid-template-columns:1fr 36px 1fr;gap:6px;align-items:start}
+.tlbl{font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px;letter-spacing:.5px}
+.vs{text-align:center;padding-top:26px;font-size:18px;color:rgba(255,255,255,0.15);font-weight:700}
+/* FILL */
+.fbar-bg{height:7px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-top:10px}
+.fbar-fg{height:100%;border-radius:4px}
+/* BTN */
+.btn-save{width:100%;padding:15px;background:linear-gradient(135deg,#16a34a,#22c55e);
+  border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 20px rgba(34,197,94,0.25);margin-bottom:10px;display:block}
+.btn-cancel{width:100%;padding:11px;background:transparent;border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;color:#64748b;font-size:14px;cursor:pointer;display:block}
+/* MATCH */
+.mc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:13px;padding:13px;margin-bottom:10px}
+.mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.mc-date{font-size:11px;color:#64748b}
+.badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:700}
+.sc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:10px}
+.sc-box{font-size:20px;font-weight:800;color:#fff;background:rgba(255,255,255,0.08);
+  padding:3px 10px;border-radius:7px;letter-spacing:2px;text-align:center}
+.sg5{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,0.03);
+  border-radius:9px;padding:8px 4px;margin-bottom:8px}
+.sc{text-align:center}
+.sc-e{font-size:12px}.sc-v{font-size:12px;font-weight:700;color:#fff}.sc-l{font-size:9px;color:#475569}
+.det{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:11px;color:#64748b;margin-bottom:9px;gap:3px}
+.acts{display:flex;gap:7px}
+.btn-ed{flex:1;padding:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);
+  border-radius:7px;color:#60a5fa;font-size:12px;cursor:pointer}
+.btn-dl{padding:8px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+  border-radius:7px;color:#f87171;font-size:12px;cursor:pointer}
+/* STAT */
+.sg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.scard{border-radius:13px;padding:13px}
+/* TOAST */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:999;
+  background:#16a34a;color:#fff;padding:10px 22px;border-radius:25px;font-size:13px;
+  font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,0.4);pointer-events:none;
+  opacity:0;transition:opacity .25s;white-space:nowrap}
+.toast.on{opacity:1}
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:#475569}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <span style="font-size:24px">⚽</span>
+    <div>
+      <div class="hdr-title">Футбольный трекер</div>
+      <div class="hdr-sub" id="cnt">0 матчей · 💾 авто</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="t-form" onclick="go('form')">➕ Матч</button>
+    <button class="tab" id="t-hist" onclick="go('hist')">📋 История</button>
+    <button class="tab" id="t-stat" onclick="go('stat')">📊 Стат</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- FORM -->
+<div id="v-form">
+  <div class="card">
+    <div class="lbl">📅 Дата и место</div>
+    <div class="g2">
+      <div>
+        <input class="inp" type="date" id="f-date"/>
+        <div id="e-date" class="hidden" style="color:#ef4444;font-size:11px;margin-top:3px">Укажи дату</div>
+      </div>
+      <input class="inp" type="text" id="f-stad" placeholder="Стадион"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">⚽ Команды и счёт</div>
+    <div class="sg">
+      <div>
+        <div class="tlbl">ХОЗЯЕВА</div>
+        <input class="inp" type="text" id="f-ht" placeholder="Команда" style="margin-bottom:7px"/>
+        <div id="e-ht" class="hidden" style="color:#ef4444;font-size:11px;margin-bottom:4px">Введи название</div>
+        <input class="inp" type="number" min="0" id="f-hg" placeholder="Голы"/>
+        <div id="e-hg" class="hidden" style="color:#ef4444;font-size:11px;margin-top:3px">Введи число</div>
+      </div>
+      <div class="vs">—</div>
+      <div>
+        <div class="tlbl">ГОСТИ</div>
+        <input class="inp" type="text" id="f-at" placeholder="Команда" style="margin-bottom:7px"/>
+        <div id="e-at" class="hidden" style="color:#ef4444;font-size:11px;margin-bottom:4px">Введи название</div>
+        <input class="inp" type="number" min="0" id="f-ag" placeholder="Голы"/>
+        <div id="e-ag" class="hidden" style="color:#ef4444;font-size:11px;margin-top:3px">Введи число</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">🟨🟥 Карточки</div>
+    <div class="g2">
+      <div><div class="inp-lbl">🟨 Хозяева</div><input class="inp" type="number" min="0" id="f-hy" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟨 Гости</div><input class="inp" type="number" min="0" id="f-ay" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟥 Хозяева</div><input class="inp" type="number" min="0" id="f-hr" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟥 Гости</div><input class="inp" type="number" min="0" id="f-ar" placeholder="0"/></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">🔄 Замены</div>
+    <div class="g2">
+      <div><div class="inp-lbl">Хозяева</div><input class="inp" type="number" min="0" id="f-hs" placeholder="0"/></div>
+      <div><div class="inp-lbl">Гости</div><input class="inp" type="number" min="0" id="f-as" placeholder="0"/></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">👥 Зрители и вместимость</div>
+    <div class="g2">
+      <div><div class="inp-lbl">Зрителей</div><input class="inp" type="number" min="0" id="f-att" placeholder="45000" oninput="fp()"/></div>
+      <div><div class="inp-lbl">Вместимость</div><input class="inp" type="number" min="0" id="f-cap" placeholder="60000" oninput="fp()"/></div>
+    </div>
+    <div id="fp-wrap" class="hidden">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;margin-bottom:3px">
+        <span style="color:#94a3b8">Заполняемость</span>
+        <span id="fp-lbl" style="font-weight:700"></span>
+      </div>
+      <div class="fbar-bg"><div class="fbar-fg" id="fp-bar"></div></div>
+    </div>
+  </div>
+
+  <button class="btn-save" id="btn-sv" onclick="submit()">✅ Сохранить матч</button>
+  <button class="btn-cancel hidden" id="btn-cn" onclick="cancelEdit()">Отмена</button>
+</div>
+
+<!-- HISTORY -->
+<div id="v-hist" class="hidden">
+  <div id="hist-empty" class="empty hidden"><div style="font-size:44px;margin-bottom:10px">⚽</div><div>Матчей пока нет</div></div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- STATS -->
+<div id="v-stat" class="hidden">
+  <div id="stat-empty" class="empty hidden"><div style="font-size:44px;margin-bottom:10px">📊</div><div>Добавь матчи для статистики</div></div>
+  <div id="stat-content"></div>
+</div>
+
+</div>
+
+<script>
+const KEY = 'ft4';
+let M = [], eid = null;
+
+// STORAGE
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(M)); } catch(e) {}
+}
+function load() {
+  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; }
+}
+
+// UTILS
+function fc(p) { return p>=90?'#22c55e':p>=60?'#f59e0b':'#ef4444'; }
+function rc(m) { return m.hg>m.ag?'#22c55e':m.hg<m.ag?'#ef4444':'#f59e0b'; }
+function rl(m) { return m.hg>m.ag?'П1':m.hg<m.ag?'П2':'Н'; }
+function pct(m) { return m.cap>0&&m.att>0?Math.min(100,Math.round(m.att/m.cap*100)):null; }
+function fmt(n) { return n?Number(n).toLocaleString('ru-RU'):'—'; }
+function fd(d) {
+  if(!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});
+}
+function cn() {
+  const n=M.length;
+  document.getElementById('cnt').textContent=(n===1?'1 матч':n>0&&n<5?n+' матча':n+' матчей')+' · 💾 авто';
+}
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2200);
+}
+
+// NAV
+function go(tab) {
+  ['form','hist','stat'].forEach(t=>{
+    document.getElementById('v-'+t).classList.toggle('hidden',t!==tab);
+    document.getElementById('t-'+t).classList.toggle('on',t===tab);
+  });
+  document.getElementById('t-form').textContent = eid?'✏️ Редакт':'➕ Матч';
+  if(tab==='hist') rh();
+  if(tab==='stat') rs();
+}
+
+// FILL PREVIEW
+function fp() {
+  const a=+document.getElementById('f-att').value;
+  const c=+document.getElementById('f-cap').value;
+  const w=document.getElementById('fp-wrap');
+  if(a>0&&c>0){
+    const p=Math.min(100,Math.round(a/c*100));
+    const col=fc(p);
+    document.getElementById('fp-lbl').textContent=p+'%';
+    document.getElementById('fp-lbl').style.color=col;
+    document.getElementById('fp-bar').style.cssText='width:'+p+'%;background:'+col;
+    w.classList.remove('hidden');
+  } else { w.classList.add('hidden'); }
+}
+
+// FORM
+function gv(id){return document.getElementById(id).value.trim();}
+function sv(id,v){document.getElementById(id).value=v??'';}
+function se(id,s){
+  document.getElementById('e-'+id).classList.toggle('hidden',!s);
+  document.getElementById('f-'+id).classList.toggle('err',s);
+}
+function validate(){
+  let ok=true;
+  const checks=[['date',!gv('date')],['ht',!gv('ht')],['at',!gv('at')],
+    ['hg',gv('hg')===''||isNaN(+gv('hg'))],['ag',gv('ag')===''||isNaN(+gv('ag'))]];
+  checks.forEach(([id,fail])=>{se(id,fail);if(fail)ok=false;});
+  return ok;
+}
+function submit(){
+  if(!validate()) return;
+  const e={
+    id:eid??Date.now(),
+    date:gv('date'),stad:gv('stad'),
+    ht:gv('ht'),at:gv('at'),
+    hg:+gv('hg')||0,ag:+gv('ag')||0,
+    hy:+gv('hy')||0,ay:+gv('ay')||0,
+    hr:+gv('hr')||0,ar:+gv('ar')||0,
+    hs:+gv('hs')||0,as:+gv('as')||0,
+    att:+gv('att')||0,cap:+gv('cap')||0,
+  };
+  if(eid){ M=M.map(m=>m.id===eid?e:m); eid=null; }
+  else { M.unshift(e); }
+  save(); clear(); cn(); toast('✅ Матч сохранён'); go('hist');
+}
+function clear(){
+  ['date','stad','ht','at','hg','ag','hy','ay','hr','ar','hs','as','att','cap']
+    .forEach(id=>{sv('f-'+id,'');se(id,false);});
+  document.getElementById('fp-wrap').classList.add('hidden');
+  document.getElementById('btn-cn').classList.add('hidden');
+  document.getElementById('btn-sv').textContent='✅ Сохранить матч';
+  document.getElementById('t-form').textContent='➕ Матч';
+  eid=null;
+}
+function cancelEdit(){clear();go('hist');}
+function editM(id){
+  const m=M.find(x=>x.id===id);if(!m)return;
+  eid=id;
+  sv('f-date',m.date);sv('f-stad',m.stad);
+  sv('f-ht',m.ht);sv('f-at',m.at);
+  sv('f-hg',m.hg);sv('f-ag',m.ag);
+  sv('f-hy',m.hy);sv('f-ay',m.ay);
+  sv('f-hr',m.hr);sv('f-ar',m.ar);
+  sv('f-hs',m.hs);sv('f-as',m.as);
+  sv('f-att',m.att);sv('f-cap',m.cap);
+  fp();
+  document.getElementById('btn-cn').classList.remove('hidden');
+  document.getElementById('btn-sv').textContent='💾 Сохранить';
+  go('form');
+}
+function delM(id){
+  if(!confirm('Удалить матч?'))return;
+  M=M.filter(m=>m.id!==id);
+  save();cn();rh();rs();
+}
+
+// HISTORY
+function rh(){
+  const list=document.getElementById('hist-list');
+  const empty=document.getElementById('hist-empty');
+  if(!M.length){empty.classList.remove('hidden');list.innerHTML='';return;}
+  empty.classList.add('hidden');
+  list.innerHTML=M.map(m=>{
+    const c=rc(m),l=rl(m),p=pct(m);
+    const fb=p!==null?`<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+      <span style="color:#64748b">Заполняемость</span>
+      <span style="color:${fc(p)};font-weight:700">${p}% · ${fmt(m.att)}/${fmt(m.cap)}</span></div>
+      <div class="fbar-bg"><div class="fbar-fg" style="width:${p}%;background:${fc(p)}"></div></div><br/>`:'';
+    return `<div class="mc" style="border-left:3px solid ${c}">
+      <div class="mc-top">
+        <span class="mc-date">${fd(m.date)}${m.stad?' · '+m.stad:''}</span>
+        <span class="badge" style="background:${c}22;color:${c}">${l}</span>
+      </div>
+      <div class="sc-row">
+        <div style="font-weight:700;font-size:14px;color:#fff">${m.ht}</div>
+        <div class="sc-box">${m.hg} : ${m.ag}</div>
+        <div style="font-weight:700;font-size:14px;color:#fff;text-align:right">${m.at}</div>
+      </div>
+      <div class="sg5">
+        <div class="sc"><div class="sc-e">⚽</div><div class="sc-v">${m.hg+m.ag}</div><div class="sc-l">Голы</div></div>
+        <div class="sc"><div class="sc-e">🟨</div><div class="sc-v">${m.hy+m.ay}</div><div class="sc-l">Жёлт</div></div>
+        <div class="sc"><div class="sc-e">🟥</div><div class="sc-v">${m.hr+m.ar}</div><div class="sc-l">Красн</div></div>
+        <div class="sc"><div class="sc-e">🔄</div><div class="sc-v">${m.hs+m.as}</div><div class="sc-l">Замены</div></div>
+        <div class="sc"><div class="sc-e">👥</div><div class="sc-v" style="font-size:10px">${m.att?m.att.toLocaleString('ru-RU'):'—'}</div><div class="sc-l">Зрит</div></div>
+      </div>
+      ${fb}
+      <div class="det">
+        <span>🟨 ${m.hy}/${m.ay}</span><span>🟥 ${m.hr}/${m.ar}</span><span>🔄 ${m.hs}/${m.as}</span>
+      </div>
+      <div class="acts">
+        <button class="btn-ed" onclick="editM(${m.id})">✏️ Изменить</button>
+        <button class="btn-dl" onclick="delM(${m.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// STATS
+function rs(){
+  const c=document.getElementById('stat-content');
+  const e=document.getElementById('stat-empty');
+  if(!M.length){e.classList.remove('hidden');c.innerHTML='';return;}
+  e.classList.add('hidden');
+  const tg=M.reduce((s,m)=>s+m.hg+m.ag,0);
+  const ty=M.reduce((s,m)=>s+m.hy+m.ay,0);
+  const tr=M.reduce((s,m)=>s+m.hr+m.ar,0);
+  const ts=M.reduce((s,m)=>s+m.hs+m.as,0);
+  const ta=M.reduce((s,m)=>s+m.att,0);
+  const avgA=M.length?Math.round(ta/M.length):0;
+  const wc=M.filter(m=>m.cap>0&&m.att>0);
+  const avgF=wc.length?Math.round(wc.reduce((s,m)=>s+pct(m),0)/wc.length):null;
+  const top=M.length?M.reduce((b,m)=>m.att>b.att?m:b,M[0]):null;
+  const cards=[
+    {e:'🏟️',l:'Матчей',v:M.length,c:'#818cf8'},
+    {e:'⚽',l:'Голов',v:tg,c:'#22c55e'},
+    {e:'🟨',l:'Жёлтых',v:ty,c:'#f59e0b'},
+    {e:'🟥',l:'Красных',v:tr,c:'#ef4444'},
+    {e:'🔄',l:'Замен',v:ts,c:'#a78bfa'},
+    {e:'👥',l:'Средн.посещ.',v:avgA.toLocaleString('ru-RU'),c:'#38bdf8'},
+    ...(avgF!==null?[{e:'📊',l:'Средн.заполн.',v:avgF+'%',c:fc(avgF)}]:[]),
+  ].map(x=>`<div class="scard" style="border:1px solid ${x.c}33;border-top:3px solid ${x.c}">
+    <div style="font-size:16px;margin-bottom:5px">${x.e}</div>
+    <div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:1px">${x.v}</div>
+    <div style="font-size:10px;color:#64748b">${x.l}</div></div>`).join('');
+
+  const fch=wc.length?`<div class="card" style="margin-bottom:12px"><div class="lbl">📊 Заполняемость</div>
+    ${wc.map(m=>{const p=pct(m);return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+        <span style="color:#e2e8f0">${m.ht} vs ${m.at}</span>
+        <span style="color:${fc(p)};font-weight:700">${p}%</span></div>
+      <div class="fbar-bg"><div class="fbar-fg" style="width:${p}%;background:${fc(p)}"></div></div>
+      <div style="font-size:9px;color:#475569;margin-top:1px">${fmt(m.att)} / ${fmt(m.cap)}</div>
+    </div>`;}).join('')}</div>`:'';
+
+  const maxG=Math.max(...M.map(m=>m.hg+m.ag),1);
+  const gch=`<div class="card" style="margin-bottom:12px"><div class="lbl">⚽ Голов за матч</div>
+    ${M.map(m=>{const t=m.hg+m.ag;return `<div style="margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+        <span style="color:#e2e8f0">${m.ht} ${m.hg}:${m.ag} ${m.at}</span>
+        <span style="color:#22c55e;font-weight:700">${t}</span></div>
+      <div class="fbar-bg"><div class="fbar-fg" style="width:${t/maxG*100}%;background:linear-gradient(90deg,#16a34a,#22c55e)"></div></div>
+    </div>`;}).join('')}</div>`;
+
+  const topC=top&&top.att>0?`<div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);border-radius:13px;padding:14px">
+    <div style="font-size:12px;color:#38bdf8;margin-bottom:7px;font-weight:600">🏆 Рекорд посещаемости</div>
+    <div style="font-size:19px;font-weight:800;color:#fff">${top.att.toLocaleString('ru-RU')} зрителей</div>
+    <div style="font-size:12px;color:#94a3b8;margin-top:3px">${top.ht} ${top.hg}:${top.ag} ${top.at}${top.stad?' · '+top.stad:''}</div>
+  </div>`:'';
+
+  c.innerHTML=`<div class="sg2">${cards}</div>${fch}${gch}${topC}`;
+}
+
+// INIT
+M=load(); cn();
+</script>
+</body>
+</html>
