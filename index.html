@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Футбольный трекер</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0f1e;font-family:-apple-system,sans-serif;color:#e2e8f0;padding-bottom:80px}
+button,input{-webkit-appearance:none;font-family:inherit}
+.hdr{background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 14px 0;position:sticky;top:0;z-index:50}
+.hdr-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.tabs{display:flex}
+.tab{flex:1;padding:9px 4px;border:none;background:transparent;color:#64748b;border-bottom:2px solid transparent;cursor:pointer;font-size:12px}
+.tab.on{color:#22c55e;border-bottom-color:#22c55e;background:rgba(34,197,94,0.08);font-weight:700}
+.main{padding:16px 14px 0}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:16px;margin-bottom:12px}
+.lbl{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.inp{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 12px;color:#fff;font-size:15px;outline:none;display:block}
+.inp:focus{border-color:#22c55e}
+.inp-lbl{font-size:11px;color:#64748b;margin-bottom:4px}
+input[type=date]{color-scheme:dark}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sg{display:grid;grid-template-columns:1fr 36px 1fr;gap:6px;align-items:start}
+.vs{text-align:center;padding-top:26px;font-size:18px;color:rgba(255,255,255,0.15)}
+.fbar{height:7px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-top:10px}
+.fbarf{height:100%;border-radius:4px}
+.btn-green{width:100%;padding:15px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block}
+.btn-gray{width:100%;padding:11px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#64748b;font-size:14px;cursor:pointer;display:block}
+.mc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:13px;margin-bottom:10px}
+.srow{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:10px}
+.sbox{font-size:20px;font-weight:800;color:#fff;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:7px;letter-spacing:2px;text-align:center}
+.sg5{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,0.03);border-radius:9px;padding:8px 4px;margin-bottom:8px;text-align:center}
+.acts{display:flex;gap:7px}
+.btn-ed{flex:1;padding:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:7px;color:#60a5fa;font-size:12px;cursor:pointer}
+.btn-dl{padding:8px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:7px;color:#f87171;font-size:12px;cursor:pointer}
+.sg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.scard{border-radius:13px;padding:13px}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:999;background:#16a34a;color:#fff;padding:10px 22px;border-radius:25px;font-size:13px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,0.4);pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap}
+.toast.on{opacity:1}
+.empty{text-align:center;padding:50px 20px;color:#475569}
+.hide{display:none}
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:#1e293b;border:1px solid rgba(255,255,255,0.15);border-radius:8px;margin-top:2px;z-index:100;max-height:160px;overflow-y:auto}
+.ac-item{padding:10px 12px;font-size:14px;color:#e2e8f0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05)}
+.ac-item:last-child{border-bottom:none}
+.ac-item:active{background:rgba(34,197,94,0.15)}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <span style="font-size:24px">⚽</span>
+    <div>
+      <div style="font-size:17px;font-weight:700;color:#fff">Футбольный трекер</div>
+      <div style="font-size:11px;color:#64748b" id="cnt">0 матчей</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="t-form" onclick="goTab('form')">➕ Матч</button>
+    <button class="tab" id="t-hist" onclick="goTab('hist')">📋 История</button>
+    <button class="tab" id="t-stat" onclick="goTab('stat')">📊 Стат</button>
+  </div>
+</div>
+
+<div class="main">
+
+<div id="v-form">
+  <div class="card">
+    <div class="lbl">📅 Дата и место</div>
+    <div class="g2">
+      <input class="inp" type="date" id="f-date"/>
+      <div class="ac-wrap">
+        <input class="inp" type="text" id="f-stad" placeholder="Стадион" autocomplete="off" oninput="acShow('stad')" onfocus="acShow('stad')" onblur="acHide('stad')"/>
+        <div class="ac-list hide" id="ac-stad"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">⚽ Команды и счёт</div>
+    <div class="sg">
+      <div>
+        <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">ХОЗЯЕВА</div>
+        <div class="ac-wrap" style="margin-bottom:7px">
+          <input class="inp" type="text" id="f-ht" placeholder="Команда" autocomplete="off" oninput="acShow('ht')" onfocus="acShow('ht')" onblur="acHide('ht')"/>
+          <div class="ac-list hide" id="ac-ht"></div>
+        </div>
+        <input class="inp" type="number" min="0" id="f-hg" placeholder="Голы"/>
+      </div>
+      <div class="vs">—</div>
+      <div>
+        <div style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">ГОСТИ</div>
+        <div class="ac-wrap" style="margin-bottom:7px">
+          <input class="inp" type="text" id="f-at" placeholder="Команда" autocomplete="off" oninput="acShow('at')" onfocus="acShow('at')" onblur="acHide('at')"/>
+          <div class="ac-list hide" id="ac-at"></div>
+        </div>
+        <input class="inp" type="number" min="0" id="f-ag" placeholder="Голы"/>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">🟨🟥 Карточки</div>
+    <div class="g2">
+      <div><div class="inp-lbl">🟨 Хозяева</div><input class="inp" type="number" min="0" id="f-hy" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟨 Гости</div><input class="inp" type="number" min="0" id="f-ay" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟥 Хозяева</div><input class="inp" type="number" min="0" id="f-hr" placeholder="0"/></div>
+      <div><div class="inp-lbl">🟥 Гости</div><input class="inp" type="number" min="0" id="f-ar" placeholder="0"/></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">🔄 Замены</div>
+    <div class="g2">
+      <div><div class="inp-lbl">Хозяева</div><input class="inp" type="number" min="0" id="f-hs" placeholder="0"/></div>
+      <div><div class="inp-lbl">Гости</div><input class="inp" type="number" min="0" id="f-as" placeholder="0"/></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">👥 Зрители и вместимость</div>
+    <div class="g2">
+      <div><div class="inp-lbl">Зрителей на матче</div><input class="inp" type="number" min="0" id="f-att" placeholder="45000" oninput="showFill()"/></div>
+      <div><div class="inp-lbl">Вместимость стадиона</div><input class="inp" type="number" min="0" id="f-cap" placeholder="60000" oninput="showFill()"/></div>
+    </div>
+    <div id="fillWrap" class="hide" style="margin-top:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span style="color:#94a3b8">Заполняемость</span>
+        <span id="fillLbl" style="font-weight:700"></span>
+      </div>
+      <div class="fbar"><div class="fbarf" id="fillBar"></div></div>
+    </div>
+  </div>
+  <button class="btn-green" id="btnSave" onclick="doSave()">✅ Сохранить матч</button>
+  <button class="btn-gray hide" id="btnCancel" onclick="doCancel()">Отмена</button>
+</div>
+
+<div id="v-hist" class="hide">
+  <div id="histEmpty" class="empty hide"><div style="font-size:44px;margin-bottom:10px">⚽</div><div>Матчей пока нет</div></div>
+  <div id="histList"></div>
+</div>
+
+<div id="v-stat" class="hide">
+  <div id="statEmpty" class="empty hide"><div style="font-size:44px;margin-bottom:10px">📊</div><div>Добавь матчи</div></div>
+  <div id="statContent"></div>
+</div>
+
+</div>
+
+<script>
+var KEY = 'ft6';
+var matches = [];
+var editId = null;
+
+// --- STORAGE ---
+function loadData() {
+  try { var r = localStorage.getItem(KEY); if (r) matches = JSON.parse(r); } catch(e) { matches = []; }
+}
+function saveData() {
+  try { localStorage.setItem(KEY, JSON.stringify(matches)); } catch(e) {}
+}
+
+// --- AUTOCOMPLETE ---
+// Get unique sorted values from match history
+function getUniq(field) {
+  var seen = {};
+  var arr = [];
+  for (var i = 0; i < matches.length; i++) {
+    var v = matches[i][field];
+    if (v && !seen[v]) { seen[v] = 1; arr.push(v); }
+  }
+  return arr.sort();
+}
+
+function acShow(field) {
+  var inputId = 'f-' + field;
+  var listId = 'ac-' + field;
+  var inp = document.getElementById(inputId);
+  var list = document.getElementById(listId);
+  var val = inp.value.toLowerCase();
+  var dataField = field === 'stad' ? 'stad' : (field === 'ht' ? 'ht' : 'at');
+  var items = getUniq(dataField);
+  var filtered = [];
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].toLowerCase().indexOf(val) !== -1 && items[i] !== inp.value) {
+      filtered.push(items[i]);
+    }
+  }
+  if (!filtered.length) { list.className = 'ac-list hide'; return; }
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    html += '<div class="ac-item" onmousedown="acPick(\'' + field + '\',\'' + filtered[i].replace(/'/g,"&#39;") + '\')">' + filtered[i] + '</div>';
+  }
+  list.innerHTML = html;
+  list.className = 'ac-list';
+}
+
+function acHide(field) {
+  setTimeout(function() {
+    var list = document.getElementById('ac-' + field);
+    if (list) list.className = 'ac-list hide';
+  }, 200);
+}
+
+function acPick(field, val) {
+  document.getElementById('f-' + field).value = val;
+  document.getElementById('ac-' + field).className = 'ac-list hide';
+}
+
+// --- TOAST ---
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast on';
+  setTimeout(function() { t.className = 'toast'; }, 2200);
+}
+
+// --- COUNT ---
+function updateCount() {
+  var n = matches.length;
+  var s = n === 1 ? '1 матч' : (n > 1 && n < 5 ? n + ' матча' : n + ' матчей');
+  document.getElementById('cnt').textContent = s;
+}
+
+// --- TABS ---
+function goTab(tab) {
+  document.getElementById('v-form').className = tab === 'form' ? '' : 'hide';
+  document.getElementById('v-hist').className = tab === 'hist' ? '' : 'hide';
+  document.getElementById('v-stat').className = tab === 'stat' ? '' : 'hide';
+  document.getElementById('t-form').className = tab === 'form' ? 'tab on' : 'tab';
+  document.getElementById('t-hist').className = tab === 'hist' ? 'tab on' : 'tab';
+  document.getElementById('t-stat').className = tab === 'stat' ? 'tab on' : 'tab';
+  document.getElementById('t-form').textContent = editId ? '✏️ Редакт' : '➕ Матч';
+  if (tab === 'hist') renderHist();
+  if (tab === 'stat') renderStat();
+}
+
+// --- FILL PREVIEW ---
+function showFill() {
+  var a = parseFloat(document.getElementById('f-att').value);
+  var c = parseFloat(document.getElementById('f-cap').value);
+  var w = document.getElementById('fillWrap');
+  if (a > 0 && c > 0) {
+    var p = Math.min(100, Math.round(a / c * 100));
+    var col = p >= 90 ? '#22c55e' : p >= 60 ? '#f59e0b' : '#ef4444';
+    document.getElementById('fillLbl').textContent = p + '%';
+    document.getElementById('fillLbl').style.color = col;
+    document.getElementById('fillBar').style.width = p + '%';
+    document.getElementById('fillBar').style.background = col;
+    w.className = '';
+  } else { w.className = 'hide'; }
+}
+
+// --- FORM ---
+function gv(id) { return document.getElementById(id).value.trim(); }
+function sv(id, v) { document.getElementById(id).value = (v !== undefined && v !== null) ? v : ''; }
+
+function doSave() {
+  var date = gv('f-date');
+  var ht = gv('f-ht');
+  var at = gv('f-at');
+  var hg = gv('f-hg');
+  var ag = gv('f-ag');
+  if (!date || !ht || !at || hg === '' || ag === '') {
+    showToast('⚠️ Заполни дату, команды и голы');
+    return;
+  }
+  var m = {
+    id: editId || Date.now(),
+    date: date, stad: gv('f-stad'),
+    ht: ht, at: at,
+    hg: parseInt(hg) || 0, ag: parseInt(ag) || 0,
+    hy: parseInt(gv('f-hy')) || 0, ay: parseInt(gv('f-ay')) || 0,
+    hr: parseInt(gv('f-hr')) || 0, ar: parseInt(gv('f-ar')) || 0,
+    hs: parseInt(gv('f-hs')) || 0, as_: parseInt(gv('f-as')) || 0,
+    att: parseInt(gv('f-att')) || 0, cap: parseInt(gv('f-cap')) || 0
+  };
+  if (editId) {
+    for (var i = 0; i < matches.length; i++) {
+      if (matches[i].id === editId) { matches[i] = m; break; }
+    }
+    editId = null;
+  } else {
+    matches.unshift(m);
+  }
+  saveData(); clearForm(); updateCount();
+  showToast('✅ Матч сохранён');
+  goTab('hist');
+}
+
+function clearForm() {
+  var ids = ['f-date','f-stad','f-ht','f-at','f-hg','f-ag','f-hy','f-ay','f-hr','f-ar','f-hs','f-as','f-att','f-cap'];
+  for (var i = 0; i < ids.length; i++) sv(ids[i], '');
+  document.getElementById('fillWrap').className = 'hide';
+  document.getElementById('btnCancel').className = 'btn-gray hide';
+  document.getElementById('btnSave').textContent = '✅ Сохранить матч';
+  editId = null;
+}
+function doCancel() { clearForm(); goTab('hist'); }
+
+function editM(id) {
+  var m = null;
+  for (var i = 0; i < matches.length; i++) { if (matches[i].id === id) { m = matches[i]; break; } }
+  if (!m) return;
+  editId = id;
+  sv('f-date',m.date); sv('f-stad',m.stad);
+  sv('f-ht',m.ht); sv('f-at',m.at);
+  sv('f-hg',m.hg); sv('f-ag',m.ag);
+  sv('f-hy',m.hy); sv('f-ay',m.ay);
+  sv('f-hr',m.hr); sv('f-ar',m.ar);
+  sv('f-hs',m.hs); sv('f-as',m.as_);
+  sv('f-att',m.att); sv('f-cap',m.cap);
+  showFill();
+  document.getElementById('btnCancel').className = 'btn-gray';
+  document.getElementById('btnSave').textContent = '💾 Сохранить изменения';
+  goTab('form');
+}
+
+function delM(id) {
+  if (!confirm('Удалить матч?')) return;
+  var arr = [];
+  for (var i = 0; i < matches.length; i++) { if (matches[i].id !== id) arr.push(matches[i]); }
+  matches = arr;
+  saveData(); updateCount(); renderHist(); renderStat();
+}
+
+// --- HELPERS ---
+function fillCol(p) { return p >= 90 ? '#22c55e' : p >= 60 ? '#f59e0b' : '#ef4444'; }
+function resCol(m) { return m.hg > m.ag ? '#22c55e' : m.hg < m.ag ? '#ef4444' : '#f59e0b'; }
+function resLbl(m) { return m.hg > m.ag ? 'П1' : m.hg < m.ag ? 'П2' : 'Н'; }
+function getPct(m) { return m.cap > 0 && m.att > 0 ? Math.min(100, Math.round(m.att / m.cap * 100)) : null; }
+function fmtN(n) { return n ? Number(n).toLocaleString('ru-RU') : '—'; }
+function fmtD(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric'});
+}
+
+// --- HISTORY ---
+function renderHist() {
+  var list = document.getElementById('histList');
+  var empty = document.getElementById('histEmpty');
+  if (!matches.length) { empty.className = 'empty'; list.innerHTML = ''; return; }
+  empty.className = 'empty hide';
+  var html = '';
+  for (var i = 0; i < matches.length; i++) {
+    var m = matches[i];
+    var c = resCol(m); var l = resLbl(m); var p = getPct(m);
+    var fb = '';
+    if (p !== null) {
+      fb = '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+        '<span style="color:#64748b">Заполняемость</span>' +
+        '<span style="color:' + fillCol(p) + ';font-weight:700">' + p + '% · ' + fmtN(m.att) + ' / ' + fmtN(m.cap) + '</span></div>' +
+        '<div class="fbar"><div class="fbarf" style="width:' + p + '%;background:' + fillCol(p) + '"></div></div></div>';
+    }
+    html += '<div class="mc" style="border-left:3px solid ' + c + '">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">' +
+      '<span style="font-size:11px;color:#64748b">' + fmtD(m.date) + (m.stad ? ' · ' + m.stad : '') + '</span>' +
+      '<span style="background:' + c + '22;color:' + c + ';padding:2px 7px;border-radius:5px;font-size:11px;font-weight:700">' + l + '</span></div>';
+    html += '<div class="srow">' +
+      '<div style="font-weight:700;font-size:14px;color:#fff">' + m.ht + '</div>' +
+      '<div class="sbox">' + m.hg + ' : ' + m.ag + '</div>' +
+      '<div style="font-weight:700;font-size:14px;color:#fff;text-align:right">' + m.at + '</div></div>';
+    html += '<div class="sg5">' +
+      '<div><div style="font-size:12px">⚽</div><div style="font-size:12px;font-weight:700;color:#fff">' + (m.hg+m.ag) + '</div><div style="font-size:9px;color:#475569">Голы</div></div>' +
+      '<div><div style="font-size:12px">🟨</div><div style="font-size:12px;font-weight:700;color:#fff">' + (m.hy+m.ay) + '</div><div style="font-size:9px;color:#475569">Жёлт</div></div>' +
+      '<div><div style="font-size:12px">🟥</div><div style="font-size:12px;font-weight:700;color:#fff">' + (m.hr+m.ar) + '</div><div style="font-size:9px;color:#475569">Красн</div></div>' +
+      '<div><div style="font-size:12px">🔄</div><div style="font-size:12px;font-weight:700;color:#fff">' + (m.hs+m.as_) + '</div><div style="font-size:9px;color:#475569">Замены</div></div>' +
+      '<div><div style="font-size:12px">👥</div><div style="font-size:10px;font-weight:700;color:#fff">' + (m.att ? fmtN(m.att) : '—') + '</div><div style="font-size:9px;color:#475569">Зрит</div></div>' +
+      '</div>';
+    html += fb;
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;font-size:11px;color:#64748b;margin-bottom:9px">' +
+      '<span>🟨 ' + m.hy + '/' + m.ay + '</span><span>🟥 ' + m.hr + '/' + m.ar + '</span><span>🔄 ' + m.hs + '/' + m.as_ + '</span></div>';
+    html += '<div class="acts">' +
+      '<button class="btn-ed" onclick="editM(' + m.id + ')">✏️ Изменить</button>' +
+      '<button class="btn-dl" onclick="delM(' + m.id + ')">🗑️</button></div>';
+    html += '</div>';
+  }
+  list.innerHTML = html;
+}
+
+// --- STATS ---
+function renderStat() {
+  var c = document.getElementById('statContent');
+  var e = document.getElementById('statEmpty');
+  if (!matches.length) { e.className = 'empty'; c.innerHTML = ''; return; }
+  e.className = 'empty hide';
+  var tg=0,ty=0,tr=0,ts=0,ta=0;
+  for (var i=0; i<matches.length; i++) {
+    var m = matches[i];
+    tg += m.hg+m.ag; ty += m.hy+m.ay; tr += m.hr+m.ar; ts += m.hs+m.as_; ta += m.att;
+  }
+  var avgA = matches.length ? Math.round(ta/matches.length) : 0;
+  var wc = [];
+  for (var i=0; i<matches.length; i++) { if (matches[i].cap>0 && matches[i].att>0) wc.push(matches[i]); }
+  var avgF = null;
+  if (wc.length) { var sf=0; for (var i=0; i<wc.length; i++) sf+=getPct(wc[i]); avgF=Math.round(sf/wc.length); }
+  var top = null;
+  for (var i=0; i<matches.length; i++) { if (!top || matches[i].att > top.att) top = matches[i]; }
+
+  var cards = [
+    {e:'🏟️', l:'Матчей', v:matches.length, col:'#818cf8'},
+    {e:'⚽', l:'Голов всего', v:tg, col:'#22c55e'},
+    {e:'🟨', l:'Жёлтых', v:ty, col:'#f59e0b'},
+    {e:'🟥', l:'Красных', v:tr, col:'#ef4444'},
+    {e:'🔄', l:'Замен', v:ts, col:'#a78bfa'},
+    {e:'👥', l:'Зрителей всего', v:fmtN(ta), col:'#38bdf8'},
+    {e:'📈', l:'Средн.посещ.', v:fmtN(avgA), col:'#22d3ee'}
+  ];
+  if (avgF !== null) cards.push({e:'📊', l:'Средн.заполн.', v:avgF+'%', col:fillCol(avgF)});
+
+  var html = '<div class="sg2">';
+  for (var i=0; i<cards.length; i++) {
+    var x = cards[i];
+    html += '<div class="scard" style="border:1px solid ' + x.col + '33;border-top:3px solid ' + x.col + '">' +
+      '<div style="font-size:16px;margin-bottom:5px">' + x.e + '</div>' +
+      '<div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:1px">' + x.v + '</div>' +
+      '<div style="font-size:10px;color:#64748b">' + x.l + '</div></div>';
+  }
+  html += '</div>';
+
+  if (wc.length) {
+    html += '<div class="card" style="margin-bottom:12px"><div class="lbl">📊 Заполняемость</div>';
+    for (var i=0; i<wc.length; i++) {
+      var m=wc[i]; var p=getPct(m);
+      html += '<div style="margin-bottom:8px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+        '<span style="color:#e2e8f0">' + m.ht + ' vs ' + m.at + '</span>' +
+        '<span style="color:' + fillCol(p) + ';font-weight:700">' + p + '%</span></div>' +
+        '<div class="fbar"><div class="fbarf" style="width:' + p + '%;background:' + fillCol(p) + '"></div></div></div>';
+    }
+    html += '</div>';
+  }
+
+  var maxG = 1;
+  for (var i=0; i<matches.length; i++) { if (matches[i].hg+matches[i].ag > maxG) maxG=matches[i].hg+matches[i].ag; }
+  html += '<div class="card" style="margin-bottom:12px"><div class="lbl">⚽ Голов за матч</div>';
+  for (var i=0; i<matches.length; i++) {
+    var m=matches[i]; var t=m.hg+m.ag;
+    html += '<div style="margin-bottom:7px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+      '<span style="color:#e2e8f0">' + m.ht + ' ' + m.hg + ':' + m.ag + ' ' + m.at + '</span>' +
+      '<span style="color:#22c55e;font-weight:700">' + t + '</span></div>' +
+      '<div class="fbar"><div class="fbarf" style="width:' + (t/maxG*100) + '%;background:linear-gradient(90deg,#16a34a,#22c55e)"></div></div></div>';
+  }
+  html += '</div>';
+
+  if (top && top.att > 0) {
+    html += '<div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);border-radius:13px;padding:14px">' +
+      '<div style="font-size:12px;color:#38bdf8;margin-bottom:7px;font-weight:600">🏆 Рекорд посещаемости</div>' +
+      '<div style="font-size:19px;font-weight:800;color:#fff">' + fmtN(top.att) + ' зрителей</div>' +
+      '<div style="font-size:12px;color:#94a3b8;margin-top:3px">' + top.ht + ' ' + top.hg + ':' + top.ag + ' ' + top.at + (top.stad ? ' · ' + top.stad : '') + '</div></div>';
+  }
+  c.innerHTML = html;
+}
+
+loadData();
+updateCount();
+</script>
+</body>
+</html>
